@@ -1,5 +1,3 @@
 package com.pedrorijo91.mycujoo.converter
 
-class SqlStm {
-
-}
+case class SqlStm(sql: String)

@@ -2,8 +2,7 @@ package com.pedrorijo91.mycujoo.fetcher.http
 
 import com.pedrorijo91.mycujoo.fetcher.DataFetcher
 import com.pedrorijo91.mycujoo.fetcher.http.HttpFetcher.HttpClient
-import com.softwaremill.sttp.{Empty, HttpURLConnectionBackend, Id, Request, RequestT, Response}
-import com.softwaremill.sttp._
+import com.softwaremill.sttp.{Empty, HttpURLConnectionBackend, Id, RequestT, _}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -13,7 +12,7 @@ class HttpFetcher(private val client: HttpClient, private val uri: Uri = HttpFet
     val request = sttp.get(uri)
 
     implicit val backend: SttpBackend[Id, Nothing] = HttpURLConnectionBackend() // TODO async banckend
-    val rsp: Response[String] = request.send()
+    val rsp = request.send()
 
     rsp.body match {
       case Left(err) => Future.failed(new RuntimeException(err))

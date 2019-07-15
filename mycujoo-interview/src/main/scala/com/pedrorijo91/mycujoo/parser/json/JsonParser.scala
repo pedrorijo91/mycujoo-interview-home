@@ -1,36 +1,33 @@
 package com.pedrorijo91.mycujoo.parser.json
 
-import com.pedrorijo91.mycujoo.parser.{DataParser, Table}
-import ujson.{Arr, Obj, Str}
+import com.pedrorijo91.mycujoo.parser._
 import ujson.Value.Value
+import ujson.{Arr, Obj, Str}
 
-// http://www.lihaoyi.com/post/HowtoworkwithJSONinScala.html
-// http://www.lihaoyi.com/upickle/#VersionHistory
-
-// https://circe.github.io/circe/parsing.html
-class JsonParser() extends DataParser {
-
-  import upickle.default._
+class JsonParser() extends DataParser[String] {
 
   override def parseData(data: String): Table = { // TODO support other json libs
     val json: Value = ujson.read(data)
+
     val tableName = json("name").str
-    json("fields").arr.map(elem => {
-      elem("name").str
-      elem("type") match { // TODO ADT
-        case Str(_) => // type
-        case Arr(_) => // nullable
-        case Obj(_) => // enum
+
+    val fields = json("fields").arr.map(elem => {
+      val columnName = elem("name").str
+      val columnType = elem("type") match {
+        case Str(colType) =>
+          ColumnType.fromStr(colType)
+        case Arr(arr) =>
+          ColumnType.fromStr(arr.find(_.str != "null").get.str, nullable = true) // TODO .get
+        case Obj(typeDef) =>
+          SqlEnum(typeDef("symbols").arr.map(_.str).toSet)
+        case any =>
+          throw new IllegalArgumentException("unexpected: " + any)
       }
-    })
 
-    ???
+      Field(columnName, columnType)
+    }).toSet
+
+
+    Table(tableName, fields)
   }
-}
-
-object test { // TODO delete
-
-  """
-    |{"name":"Player","type":"record","fields":[{"name":"id","type":"int"},{"name":"firstName","type":"string"},{"name":"lastName","type":["null","string"]},{"name":"age","type":["int","null"]},{"name":"gender","type":{"type":"enum","symbols":["male","female","notSpecified"]}},{"name":"benched","type":"boolean"}]}
-  """.stripMargin
 }

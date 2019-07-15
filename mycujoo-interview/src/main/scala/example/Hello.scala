@@ -20,10 +20,8 @@ object Hello extends App {
   val parser = new JsonParser()
   val converter = new SqlConverter()
 
-  val statement = fetcher.getData()
+  fetcher.getData()
     .map(parser.parseData)
     .map(converter.convert)
-
-  println("finish")
-
+      .onComplete(println)
 }
